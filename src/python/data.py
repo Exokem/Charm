@@ -44,7 +44,7 @@ class Word:
         return hash(self.word)
 
 
-def parse(line: str, part: Part):
+def parse(line: str):
     """
     Parses a Word from a string.
 
@@ -56,8 +56,12 @@ def parse(line: str, part: Part):
     line = line.split(' ')
 
     # Word should be the first value
-    word = line[0]
-    return Word(word, part)
+    try:
+        word = line[0]
+        part = get_part(int(line[1]))
+        return Word(word, part)
+    except:
+        return None
 
 
 def parts():

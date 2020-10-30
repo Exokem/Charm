@@ -3,7 +3,10 @@ from src.python.data import *
 from src.python.printer import *
 
 
-version: str
+version: str = ""
+
+save_phrase: str
+greeting: str = ""
 
 alpha: list = []
 
@@ -18,12 +21,13 @@ prep: dict = {}
 conj: dict = {}
 intj: dict = {}
 
+book: list = [noun, pnou, verb, advb, adjc, prep, conj, intj]
+
 
 def recover_data() -> None:
     """"""
+    recover_words()
     recover_user_data()
-    if 0 < len(alpha):
-        recover_words()
     print_value_message("Connected to Charm Communication Console", version)
 
 
@@ -40,14 +44,23 @@ def recover_user_data() -> None:
 
         for line in range(len(userdata)):
             sections = userdata[line].split(' ')
-            if line == 0:
-                # Alphabet is stored in the first line
-                alpha = sections
-            elif line == 1:
-                version = sections[1]
-                for i in range(len(alpha) - 3, len(alpha)):
-                    if 0 <= i:
-                        version += alpha[i]
+            if 1 < len(sections):
+                if line == 0:
+                    # Alphabet is stored in the first line
+                    alpha = sections
+                elif line == 1:
+                    version = sections[1][:-2] + str(stored_words()) + "-"
+                    for i in range(len(alpha) - 3, len(alpha)):
+                        if 0 <= i:
+                            version += alpha[i]
+                elif line == 2:
+                    save_phrase = sections[1]
+                elif line == 3:
+                    greeting = sections[1]
+
+
+def stored_words() -> int:
+    return len(noun) + len(pnou) + len(verb) + len(advb) + len(adjc) + len(prep) + len(conj) + len(intj)
 
 
 def recover_words() -> None:
@@ -58,20 +71,19 @@ def recover_words() -> None:
 
     count = 0
 
-    # Words are divided into letters * parts files, organized alphabetically and by part of speech
-    for letter in alpha:
-        for part in parts():
-            # File path is derived from letter and the part of speech
-            dest = "data/" + letter + "_" + part.value[0]
-            if path.exists(dest):
-                # If the file exists, parse its contents into Word objects
-                word_file = open(dest)
-                for line in word_file:
-                    word = parse(line, part)
-                    if word is not None:
-                        # Store Word if it has been parsed successfully
-                        count += store_word(word)
-                        print_status("Recovering words from " + dest, count)
+    dest = "data/words"
+    if path.exists(dest):
+        # If the file exists, parse its contents into Word objects
+        word_file = open(dest)
+        for line in word_file:
+            word = parse(line)
+            if word is not None:
+                # Store Word if it has been parsed successfully
+                count += store_word(word)
+                print_status("Recovering words from " + dest, count)
+    else:
+        file = open(dest, "w+")
+        file.close()
 
 
 def store_word(word: Word) -> int:
