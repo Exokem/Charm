@@ -49,6 +49,7 @@ def recover_words() -> None:
                     if word is not None:
                         # Store Word if it has been parsed successfully
                         store_word(word)
+                        print(charm.intj)
 
 
 def store_word(word: Word) -> None:
@@ -59,18 +60,18 @@ def store_word(word: Word) -> None:
     """
 
     if word.part == Part.NOUN:
-        charm.nouns[word.word] = word
+        charm.noun[word.word] = word
     if word.part == Part.PNOU:
-        charm.pronou[word.word] = word
+        charm.pnou[word.word] = word
     if word.part == Part.VERB:
-        charm.verbs[word.word] = word
+        charm.verb[word.word] = word
     if word.part == Part.ADVB:
-        charm.adverb[word.word] = word
+        charm.advb[word.word] = word
     if word.part == Part.ADJC:
-        charm.adject[word.word] = word
+        charm.adjc[word.word] = word
     if word.part == Part.PREP:
-        charm.prepos[word.word] = word
+        charm.prep[word.word] = word
     if word.part == Part.CONJ:
-        charm.conjuc[word.word] = word
+        charm.conj[word.word] = word
     if word.part == Part.INTJ:
-        charm.intjec[word.word] = word
+        charm.intj[word.word] = word
