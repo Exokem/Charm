@@ -22,13 +22,15 @@ class Part(enum.Enum):
     # Expressive
     INTJ = ("interjection", 8)
 
+    DETE = ("determiner", 9)
+
 
 @dataclass
 class Word:
     # The string representation of this Word
     word: str
     # The part of speech that this Word is
-    part: Part
+    parts: list
 
     def __init__(self, word: str, part: Part):
         """
@@ -38,10 +40,14 @@ class Word:
         :param part: The part of speech that this Word is
         """
         self.word = word
-        self.part = part
+        self.parts = [part]
 
     def __hash__(self):
         return hash(self.word)
+
+    def top_part(self) -> int:
+        top: Part = self.parts[0]
+        return top.value[1]
 
 
 def parse(line: str):
@@ -56,22 +62,19 @@ def parse(line: str):
     line = line.split(' ')
 
     # Word should be the first value
-    try:
-        word = line[0]
-        part = get_part(int(line[1]))
-        return Word(word, part)
-    except:
-        return None
+    # try:
+    word = line[0]
+    part = get_part(int(line[1]))
+    return Word(word, part)
+    # except :
+    #     return None
 
 
 def parts():
-    return [Part.NOUN, Part.VERB, Part.ADJC, Part.PNOU, Part.ADVB, Part.PREP, Part.CONJ, Part.INTJ]
+    return [Part.NOUN, Part.VERB, Part.ADJC, Part.PNOU, Part.ADVB, Part.PREP, Part.CONJ, Part.INTJ, Part.DETE]
 
 
 def get_part(index: int):
     for part in parts():
         if index == part.value[1]:
             return part
-
-
-

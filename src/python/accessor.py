@@ -5,23 +5,12 @@ from src.python.printer import *
 
 version: str = ""
 
-save_phrase: str
+save_phrase: str = ""
 greeting: str = ""
 
 alpha: list = []
 
-noun: dict = {}
-pnou: dict = {}
-
-verb: dict = {}
-advb: dict = {}
-
-adjc: dict = {}
-prep: dict = {}
-conj: dict = {}
-intj: dict = {}
-
-book: list = [noun, pnou, verb, advb, adjc, prep, conj, intj]
+book: dict = {}
 
 
 def recover_data() -> None:
@@ -60,7 +49,7 @@ def recover_user_data() -> None:
 
 
 def stored_words() -> int:
-    return len(noun) + len(pnou) + len(verb) + len(advb) + len(adjc) + len(prep) + len(conj) + len(intj)
+    return len(book)
 
 
 def recover_words() -> None:
@@ -79,37 +68,18 @@ def recover_words() -> None:
             word = parse(line)
             if word is not None:
                 # Store Word if it has been parsed successfully
-                count += store_word(word)
+                count += 1
+                book[word.__hash__()] = word
                 print_status("Recovering words from " + dest, count)
     else:
         file = open(dest, "w+")
         file.close()
 
 
-def store_word(word: Word) -> int:
-    """
-    Stores a word in the active word maps based on its part of speech.
-
-    :param word: The Word to be stored
-    """
-
-    if word.part == Part.NOUN:
-        noun[word.word] = word
-    elif word.part == Part.PNOU:
-        pnou[word.word] = word
-    elif word.part == Part.VERB:
-        verb[word.word] = word
-    elif word.part == Part.ADVB:
-        advb[word.word] = word
-    elif word.part == Part.ADJC:
-        adjc[word.word] = word
-    elif word.part == Part.PREP:
-        prep[word.word] = word
-    elif word.part == Part.CONJ:
-        conj[word.word] = word
-    elif word.part == Part.INTJ:
-        intj[word.word] = word
-    else:
-        return 0
-
-    return 1
+def save():
+    open("data/words", "w").close()
+    words = open("data/words", "r+")
+    words.truncate(0)
+    for word in book.values():
+        words.write(word.word + " " + str(word.top_part()) + "\n")
+    words.close()
