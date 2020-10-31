@@ -47,7 +47,7 @@ def handle_input(line: str) -> None:
             if words[0].lower() == "yes":
                 word = parse(last_input[0] + " " + str(queried_part.value[1]))
                 if word is not None:
-                    acc.book[word.__hash__()] = word
+                    acc.book[hash(word)] = word
                     if acc.save_phrase == "":
                         print("What should I do with that?")
                         bypass_checks = True

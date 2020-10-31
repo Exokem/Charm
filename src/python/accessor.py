@@ -24,7 +24,7 @@ def recover_user_data() -> None:
     """
     Recovers user data from the user_data file.
     """
-    global alpha, version
+    global alpha, version, save_phrase, greeting
 
     if path.exists("data/user_data"):
         userdata = open("data/user_data").read()
@@ -69,7 +69,7 @@ def recover_words() -> None:
             if word is not None:
                 # Store Word if it has been parsed successfully
                 count += 1
-                book[word.__hash__()] = word
+                book[hash(word)] = word
                 print_status("Recovering words from " + dest, count)
     else:
         file = open(dest, "w+")
@@ -77,9 +77,40 @@ def recover_words() -> None:
 
 
 def save():
+    global save_phrase, greeting
+
     open("data/words", "w").close()
     words = open("data/words", "r+")
     words.truncate(0)
     for word in book.values():
         words.write(word.word + " " + str(word.top_part()) + "\n")
     words.close()
+
+    data = store_contents("data/user_data")
+    if 4 <= len(data):
+        if save_phrase != "":
+            data[2] = "save" + " " + save_phrase + "\n"
+        if greeting != "":
+            data[3] = "greeting" + " " + greeting + "\n"
+
+    userdata = open("data/user_data", "r+")
+    for entry in data:
+        userdata.write(entry)
+
+
+def store_contents(file: str) -> list:
+    """
+    Reads the contents of a file into a list.
+    Each entry in the list represents a line in the provided file, if it exists.
+
+    :param file: The path of the file to read.
+    :return: A list containing the contents of the file.
+    """
+
+    if not path.exists(file):
+        return []
+    else:
+        lines = []
+        for line in open(file):
+            lines.append(line)
+        return lines
