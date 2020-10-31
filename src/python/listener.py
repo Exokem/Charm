@@ -24,6 +24,8 @@ def handle_input(line: str) -> None:
         acc.save()
         print("I " + acc.save_phrase + "!")
         return
+    elif line == 'x':
+        exit(0)
 
     words = line.split(' ')
 
@@ -45,6 +47,7 @@ def handle_input(line: str) -> None:
             reset()
         else:
             if words[0].lower() == "yes":
+                # Confirm that the unknown word is what the user specified
                 word = parse(last_input[0] + " " + str(queried_part.value[1]))
                 if word is not None:
                     acc.book[hash(word)] = word
@@ -62,12 +65,15 @@ def handle_input(line: str) -> None:
                 acc.save_phrase = line
                 print("I will " + line + " after new words")
                 reset()
+            else:
+                wait_confirm = False
+                check_new_word(last_input)
 
 
 def check_new_word(words: list) -> bool:
     global last_input
     for word in words:
-        if acc.book.get(word.lower().__hash__()) is None:
+        if acc.book.get(hash(word.lower())) is None:
             # Make sure all input words are known, ask about them if not
             ask_word(word)
             last_input = words
