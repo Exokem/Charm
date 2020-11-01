@@ -24,6 +24,9 @@ class Part(enum.Enum):
 
     DETE = ("determiner", 9)
 
+    def __str__(self):
+        return self.value[0]
+
     def indx(self) -> int:
         return self.value[1]
 
@@ -60,6 +63,9 @@ class Word:
 
     def __eq__(self, other):
         return self.word == other.word
+
+    def __str__(self):
+        return self.word
 
     def top_part(self) -> int:
         return self.parts[0].indx()
@@ -99,18 +105,22 @@ class Word:
 
         :param defn: The definition of this Word
         """
+
         self.defn = defn
 
     def format(self) -> str:
         """
         Formats necessary elements of this Word for saving.
 
-        WORD,X X X X X X X X X,DEFINITION,KEY0 ... KEYN
+        WORD,X X X X X X X X X,DEFINITION,KEY0:V0 ... KEYN:VN
         """
 
         out: str = self.word + "," + str(self.top_part())
         for index in range(1, len(self.parts)):
             out = out + " " + str(self.parts[index].indx())
+
+        if self.defn is not None:
+            out = out + "," + self.defn + ","
 
         return out + "\n"
 
@@ -158,9 +168,9 @@ def parse(line: str):
 
     # Word should be the first value
     word = line[0]
-    parts = line[1].replace('\n', '').split(' ')
+    indices = line[1].replace('\n', '').split(' ')
 
-    obj = Word(word, parts)
+    obj = Word(word, indices)
     return obj
 
 

@@ -2,9 +2,9 @@ import src.python.charm as charm
 from src.python.printer import *
 from src.python.data import *
 
-
 bypass_checks: bool = False
 active_question: bool = False
+# Is Charm waiting to confirm a query
 wait_confirm: bool = False
 queried_part: Part
 last_input: list = []
@@ -30,16 +30,18 @@ def handle_input(line: str) -> None:
     words = line.split(' ')
 
     if 0 < len(words):
+        # Nothing to process if the input is empty
+
         if not bypass_checks:
             if check_new_word(words):
                 return
 
         if not wait_confirm and 0 < len(last_input):
-            # If the last input contained an unknown word
+            # If the last input contained an unknown word (and it actually exists)
             for part in parts():
                 if words[0] == part.value[0]:
                     # Scan for part of speech matching current input and query
-                    print_query(last_input[0], part.value[0])
+                    post_query(last_input[0], "a " + str(part), mode='c')
                     queried_part = part
                     wait_confirm = True
                     return
@@ -52,7 +54,7 @@ def handle_input(line: str) -> None:
                 if word is not None:
                     acc.book[hash(word)] = word
                     if acc.save_phrase == "":
-                        print("What should I do with that?")
+                        post_query("What should I do with that?")
                         bypass_checks = True
                     else:
                         print("Thanks!")
@@ -68,6 +70,21 @@ def handle_input(line: str) -> None:
             else:
                 wait_confirm = False
                 check_new_word(last_input)
+
+
+def post_query(subject: str, value="", mode='e'):
+    """
+    MODE:
+    ========= ===============================================================
+    'e'       query a statement
+    'c'       query a comparison: 'x' is 'y'
+    ========= ===============================================================
+    """
+
+    if mode == 'e':
+        print(subject)
+    elif mode == 'c':
+        print(subject + " is " + str(value) + "?")
 
 
 def check_new_word(words: list) -> bool:
