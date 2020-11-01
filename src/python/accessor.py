@@ -32,7 +32,7 @@ def recover_user_data() -> None:
         userdata = userdata.split('\n')
 
         for line in range(len(userdata)):
-            sections = userdata[line].split(' ')
+            sections = userdata[line].split(",")
             if 1 < len(sections):
                 if line == 0:
                     # Alphabet is stored in the first line
@@ -83,15 +83,15 @@ def save():
     words = open("data/words", "r+")
     words.truncate(0)
     for word in book.values():
-        words.write(word.word + " " + str(word.top_part()) + "\n")
+        words.write(word.format())
     words.close()
 
     data = store_contents("data/user_data")
     if 4 <= len(data):
         if save_phrase != "":
-            data[2] = "save" + " " + save_phrase + "\n"
+            data[2] = "save," + save_phrase + "\n"
         if greeting != "":
-            data[3] = "greeting" + " " + greeting + "\n"
+            data[3] = "greeting," + greeting + "\n"
 
     userdata = open("data/user_data", "r+")
     for entry in data:

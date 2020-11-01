@@ -24,26 +24,36 @@ class Part(enum.Enum):
 
     DETE = ("determiner", 9)
 
+    def indx(self) -> int:
+        return self.value[1]
+
 
 @dataclass
 class Word:
+    # The keys associated with this Word
+    keys: dict
+    # The definition of this Word
+    defn: str
+
     # The string representation of this Word
     word: str
     # The part of speech that this Word is
     parts: list
-    # The keys associated with this Word
-    keys: dict
 
-    def __init__(self, word: str, part: Part):
+    def __init__(self, word: str, indices: list):
         """
         Constructs a new Word.
 
         :param word: The word or line to
-        :param part: The part of speech that this Word is
+        :param indices: The parts of speech that this Word is
         """
         self.word = word
-        self.parts = [part]
-        self.keys = {}
+        self.parts = []
+
+        for index in indices:
+            part = get_part(int(index))
+            if part is not None and not self.parts.__contains__(part):
+                self.parts.append(part)
 
     def __hash__(self):
         return hash(self.word)
@@ -52,8 +62,17 @@ class Word:
         return self.word == other.word
 
     def top_part(self) -> int:
-        top: Part = self.parts[0]
-        return top.value[1]
+        return self.parts[0].indx()
+
+    def parts(self) -> str:
+        """
+        Formats the functional parts of speech of this Word into a string, separated with spaces.
+        """
+
+        out: str = self.parts[0].value[1]
+        for index in range(1, len(self.parts)):
+            out = out + " " + str(self.parts[index].value[1])
+        return out
 
     def add_part(self, part: Part) -> None:
         self.parts.append(part)
@@ -65,10 +84,35 @@ class Word:
 
         :param key: The key to add or increment
         """
+
+        if self.keys is None:
+            self.keys = {}
+
         if self.keys.get(key) is None:
             self.keys[key] = 1
         else:
             self.keys[key] = self.keys[key] + 1
+
+    def define(self, defn: str) -> None:
+        """
+        Define this Word.
+
+        :param defn: The definition of this Word
+        """
+        self.defn = defn
+
+    def format(self) -> str:
+        """
+        Formats necessary elements of this Word for saving.
+
+        WORD,X X X X X X X X X,DEFINITION,KEY0 ... KEYN
+        """
+
+        out: str = self.word + "," + str(self.top_part())
+        for index in range(1, len(self.parts)):
+            out = out + " " + str(self.parts[index].indx())
+
+        return out + "\n"
 
 
 @dataclass
@@ -110,15 +154,14 @@ def parse(line: str):
     """
 
     # Split line by spaces to read more detailed word information
-    line = line.split(' ')
+    line = line.split(',')
 
     # Word should be the first value
-    # try:
     word = line[0]
-    part = get_part(int(line[1]))
-    return Word(word, part)
-    # except :
-    #     return None
+    parts = line[1].replace('\n', '').split(' ')
+
+    obj = Word(word, parts)
+    return obj
 
 
 def parts():

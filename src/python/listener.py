@@ -1,7 +1,7 @@
 import src.python.charm as charm
-import src.python.accessor as acc
-import src.python.printer as prt
+from src.python.printer import *
 from src.python.data import *
+
 
 bypass_checks: bool = False
 active_question: bool = False
@@ -39,7 +39,7 @@ def handle_input(line: str) -> None:
             for part in parts():
                 if words[0] == part.value[0]:
                     # Scan for part of speech matching current input and query
-                    prt.print_query(last_input[0], part.value[0])
+                    print_query(last_input[0], part.value[0])
                     queried_part = part
                     wait_confirm = True
                     return
@@ -48,7 +48,7 @@ def handle_input(line: str) -> None:
         else:
             if words[0].lower() == "yes":
                 # Confirm that the unknown word is what the user specified
-                word = parse(last_input[0] + " " + str(queried_part.value[1]))
+                word = parse(last_input[0] + "," + str(queried_part.value[1]))
                 if word is not None:
                     acc.book[hash(word)] = word
                     if acc.save_phrase == "":
@@ -79,10 +79,6 @@ def check_new_word(words: list) -> bool:
             last_input = words
             return True
     return False
-
-
-def ask_word(word: str) -> None:
-    print("What is \'" + word + "\'?")
 
 
 def reset():
