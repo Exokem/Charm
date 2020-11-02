@@ -1,106 +1,135 @@
-import src.python.charm as charm
+import random
 from src.python.printer import *
 from src.python.data import *
 
-bypass_checks: bool = False
-active_question: bool = False
-# Is Charm waiting to confirm a query
-wait_confirm: bool = False
-queried_part: Part
-last_input: list = []
+
+def wait() -> None:
+    process_input(input())
 
 
-def cycle_input() -> None:
+def process_input(line: str) -> None:
     """"""
-    while charm.active:
-        handle_input(input())
+
+    # Do not lines if empty or commands
+    # Built in commands take precedence to other processing
+    if line_valid(line) and not check_commands(line):
+
+        # Split the line into its constituent words
+        words = line.split(' ')
+
+        # As long as any words in the last line are unknown, attempt to learn them
+        while unknown_words(words) is not None:
+            learn_new_word(unknown_words(words))
+
+    wait()
 
 
-def handle_input(line: str) -> None:
-    """"""
-    global last_input, wait_confirm, queried_part, bypass_checks
+def line_valid(line: str) -> bool:
+    return line != ' ' and line != ''
 
+
+def check_commands(line: str) -> bool:
+    """
+    Processes some built in commands.
+    True is returned if further input processing should be skipped.
+
+    COMMANDS:
+    ===================== =================================================================
+    <save_phrase>         Saves all stored content. The command itself is user-defined.
+    'x'                   Causes the program to exit.
+    ===================== =================================================================
+    """
     if line == acc.save_phrase:
         acc.save()
-        print("I " + acc.save_phrase + "!")
-        return
+        post_query("I " + line + "!")
+        return True
     elif line == 'x':
         exit(0)
 
-    words = line.split(' ')
+    return False
 
-    if 0 < len(words):
-        # Nothing to process if the input is empty
 
-        if not bypass_checks:
-            if check_new_word(words):
+def unknown_words(words: list):
+    """
+    Scans a list of words. If the list contains words that are not stored, the first unknown word is returned.
+    """
+
+    for word in words:
+        if acc.book.get(hash(word.lower())) is None:
+            return word
+    return None
+
+
+def learn_new_word(word: str) -> None:
+    """
+    Facilitates the learning of a provided word.
+    The user is repeatedly prompted for the part of speech until their input contains a valid one.
+    """
+
+    unlearned: bool = True
+
+    while unlearned:
+        line = input("What is " + word + "?")
+        valid_names = names()
+
+        line = line.split(' ')
+
+        for arg in line:
+            if valid_names.__contains__(arg):
+                acc.add_word(word, valid_names[arg])
+                try_ask_save()
                 return
 
-        if not wait_confirm and 0 < len(last_input):
-            # If the last input contained an unknown word (and it actually exists)
-            for part in parts():
-                if words[0] == part.value[0]:
-                    # Scan for part of speech matching current input and query
-                    post_query(last_input[0], "a " + str(part), mode='c')
-                    queried_part = part
-                    wait_confirm = True
-                    return
-            print("Oh")
-            reset()
-        else:
-            if words[0].lower() == "yes":
-                # Confirm that the unknown word is what the user specified
-                word = parse(last_input[0] + "," + str(queried_part.value[1]))
-                if word is not None:
-                    acc.book[hash(word)] = word
-                    if acc.save_phrase == "":
-                        post_query("What should I do with that?")
-                        bypass_checks = True
-                    else:
-                        print("Thanks!")
-                        reset()
-                else:
-                    print("That does not make sense")
-                    reset()
-                return
-            elif bypass_checks:
-                acc.save_phrase = line
-                print("I will " + line + " after new words")
-                reset()
+
+def try_ask_save() -> None:
+    """
+    Attempts to derive a save phrase from the user.
+    By default, there is no save phrase - it must be defined by the user when prompted.
+    There is a 95% chance that the user will be asked to provide a save phrase if it has not already been defined.
+    """
+
+    if acc.save_phrase == '':
+        val = random.random()
+        if val < 0.95:
+            val = input("What should I do with that?")
+            if line_valid(val):
+                acc.save_phrase = val
+                post_query("I will \'" + acc.save_phrase + "\' to keep new information")
             else:
-                wait_confirm = False
-                check_new_word(last_input)
+                post_query("That does not make sense")
 
 
 def post_query(subject: str, value="", mode='e'):
     """
+    Posts a generic query to the console with a subject and optional value.
+    The mode determines the format of the printed query.
+    Modifiers can be attached to modes, but only one mode should be used.
+
     MODE:
     ========= ===============================================================
-    'e'       query a statement
-    'c'       query a comparison: 'x' is 'y'
+    'c'       query a comparison: 'subject' is 'query'
+    'd'       query a direct definition: 'subject' 'query'
+    'e'       query a statement: 'subject'
+    ========= ===============================================================
+
+    MODIFIERS:
+    ========= ===============================================================
+    'x'       add an exclamation to the query
     ========= ===============================================================
     """
 
-    if mode == 'e':
-        print(subject)
-    elif mode == 'c':
-        print(subject + " is " + str(value) + "?")
+    message: str = ""
 
+    # Apply mode
+    if mode.__contains__('c'):
+        message = subject + " is " + str(value) + "?"
+    elif mode.__contains__('d'):
+        message = subject + " " + str(value) + "?"
+    elif mode.__contains__('e'):
+        message = subject
 
-def check_new_word(words: list) -> bool:
-    global last_input
-    for word in words:
-        if acc.book.get(hash(word.lower())) is None:
-            # Make sure all input words are known, ask about them if not
-            ask_word(word)
-            last_input = words
-            return True
-    return False
+    # Apply stackable modifiers
+    if mode.__contains__('x'):
+        message = message + "!"
 
-
-def reset():
-    global last_input, wait_confirm, queried_part, bypass_checks
-    last_input = []
-    wait_confirm = False
-    queried_part = None
-    bypass_checks = False
+    print(message)

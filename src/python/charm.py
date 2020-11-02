@@ -12,7 +12,7 @@ def init():
 
 def greet_user() -> None:
     print(acc.greeting)
-    ltr.cycle_input()
+    ltr.wait()
 
 
 if __name__ == '__main__':

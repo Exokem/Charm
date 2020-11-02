@@ -24,24 +24,33 @@ class Part(enum.Enum):
 
     DETE = ("determiner", 9)
 
+    def __hash__(self):
+        return hash(self.name())
+
+    def __eq__(self, other):
+        return self.name() == other.name() and self.indx() == other.indx()
+
     def __str__(self):
         return self.value[0]
 
     def indx(self) -> int:
         return self.value[1]
 
+    def name(self) -> str:
+        return self.value[0]
+
 
 @dataclass
 class Word:
     # The keys associated with this Word
     keys: dict
-    # The definition of this Word
-    defn: str
 
     # The string representation of this Word
     word: str
     # The part of speech that this Word is
     parts: list
+    # The definition of this Word
+    defn: str = ''
 
     def __init__(self, word: str, indices: list):
         """
@@ -155,7 +164,7 @@ class Phrase:
         return True
 
 
-def parse(line: str):
+def parse_line(line: str):
     """
     Parses a Word from a string.
 
@@ -176,6 +185,13 @@ def parse(line: str):
 
 def parts():
     return [Part.NOUN, Part.VERB, Part.ADJC, Part.PNOU, Part.ADVB, Part.PREP, Part.CONJ, Part.INTJ, Part.DETE]
+
+
+def names():
+    out = {}
+    for part in parts():
+        out[part.name()] = part
+    return out
 
 
 def get_part(index: int):

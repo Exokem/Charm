@@ -13,6 +13,11 @@ alpha: list = []
 book: dict = {}
 
 
+def add_word(word: str, part: Part) -> None:
+    word = Word(word, [part.indx()])
+    book[hash(word)] = word
+
+
 def recover_data() -> None:
     """"""
     recover_words()
@@ -65,7 +70,7 @@ def recover_words() -> None:
         # If the file exists, parse its contents into Word objects
         word_file = open(dest)
         for line in word_file:
-            word = parse(line)
+            word = parse_line(line)
             if word is not None:
                 # Store Word if it has been parsed successfully
                 count += 1
