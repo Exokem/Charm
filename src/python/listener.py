@@ -4,11 +4,23 @@ from src.python.data import *
 
 
 def wait() -> None:
+    """
+    Wait to process the user input.
+    """
+
     process_input(input())
 
 
 def process_input(line: str) -> None:
-    """"""
+    """
+    Processes the user input.
+
+    Input lines are first validated, then compared to built in commands. If they match any such commands, they are not
+    processed further and the commands they match are executed.
+
+    After validation, each word in a line is compared to the existing word database to verify that it is known.
+    Charm will attempt to learn what part of speech an unknown word belongs to before anything else.
+    """
 
     # Do not lines if empty or commands
     # Built in commands take precedence to other processing
@@ -17,20 +29,21 @@ def process_input(line: str) -> None:
         # Split the line into its constituent words
         words = line.split(' ')
 
-        # As long as any words in the last line are unknown, attempt to learn them
         while unknown_words(words) is not None:
+            # As long as any words in the last line are unknown, attempt to learn them
             learn_new_word(unknown_words(words))
 
+        if len(words) == 1:
+            # Attempt to learn the definition of single-word input
+            learn_new_defn(words.pop())
+
     wait()
-
-
-def line_valid(line: str) -> bool:
-    return line != ' ' and line != ''
 
 
 def check_commands(line: str) -> bool:
     """
     Processes some built in commands.
+
     True is returned if further input processing should be skipped.
 
     COMMANDS:
@@ -39,7 +52,9 @@ def check_commands(line: str) -> bool:
     'x'                   Causes the program to exit.
     ===================== =================================================================
     """
+
     if line == acc.save_phrase:
+        # Save and notify
         acc.save()
         post_query("I " + line + "!")
         return True
@@ -56,29 +71,67 @@ def unknown_words(words: list):
 
     for word in words:
         if acc.book.get(hash(word.lower())) is None:
+            # If any word is unknown, return it to be identified
             return word
+
     return None
 
 
 def learn_new_word(word: str) -> None:
     """
     Facilitates the learning of a provided word.
+
     The user is repeatedly prompted for the part of speech until their input contains a valid one.
+    After learning a new word, Charm will try to ask the user what to do with new information.
     """
+
+    if word is None:
+        # Cannot learn known words
+        return
 
     unlearned: bool = True
 
     while unlearned:
+        # Ask about the word until it has been learned - its part of speech must be identified
         line = input("What is " + word + "?")
+        # Collect a dictionary of the valid Part names for comparison to input
         valid_names = names()
 
+        # Split line by spaces to create a list of words
         line = line.split(' ')
 
         for arg in line:
+            # Check all words in the input line for valid parts of speech
             if valid_names.__contains__(arg):
                 acc.add_word(word, valid_names[arg])
                 try_ask_save()
                 return
+
+
+def learn_new_defn(word: str) -> None:
+    """
+    Attempts to learn the definition of a provided word.
+
+    The user is prompted for a definition, but if their input is a negative response, no definition is recorded.
+    """
+
+    # Retrieve the Word object from Charm's book
+    word = acc.book[hash(word)]
+
+    # Do not inherently ask to redefine
+    if word.defn != '':
+        return
+
+    # Prompt for definition
+    res = input("Define \'" + str(word) + "\'?")
+
+    if negative(res):
+        # Do not define if response is negative
+        return
+
+    # Notify and define
+    post_query("Defined \'" + str(word) + "\' as \'" + res + "\'")
+    word.define(res)
 
 
 def try_ask_save() -> None:
@@ -89,13 +142,18 @@ def try_ask_save() -> None:
     """
 
     if acc.save_phrase == '':
+        # Do not inherently redefine save phrase
         val = random.random()
         if val < 0.95:
+            # 95% chance to ask for save phrase
             val = input("What should I do with that?")
+
             if line_valid(val):
+                # Do not use empty or single space lines as a save phrase
                 acc.save_phrase = val
                 post_query("I will \'" + acc.save_phrase + "\' to keep new information")
             else:
+                # Notify the user of their error
                 post_query("That does not make sense")
 
 
@@ -133,3 +191,20 @@ def post_query(subject: str, value="", mode='e'):
         message = message + "!"
 
     print(message)
+
+
+def line_valid(line: str) -> bool:
+    """
+    Valid lines are not empty and not a single space.
+    """
+
+    return line != ' ' and line != ''
+
+
+def negative(word: str) -> bool:
+    """
+    Checks a word against a set of words representing a response of 'no'.
+    """
+
+    negatives = ['no', 'negative', 'nah']
+    return negatives.__contains__(word)
