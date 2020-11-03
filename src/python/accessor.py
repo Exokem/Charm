@@ -1,3 +1,29 @@
+"""
+Facilitates storage of Charm data.
+
+Functions:
+
+    add_word(word, part)
+    recover_data()
+    recover_user_data()
+    recover_words()
+    save()
+    store_contents() -> list
+
+Variables:
+
+    version
+    savek
+    greeting
+    alpha
+    book
+
+Authors:
+
+    Samuel Henderson
+"""
+
+
 import os.path as path
 from src.python.data import *
 from src.python.listener import post_query

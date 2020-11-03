@@ -1,27 +1,74 @@
+"""
+Contains classes and parsing functions relevant to data storage.
+
+Classes:
+
+    Part
+    Word
+    Phrase
+
+Functions:
+
+    parse_line(line)
+    parts()
+    names()
+    get_part(index)
+
+Authors:
+
+    Samuel Henderson
+"""
+
 import enum
 from dataclasses import dataclass
 
 
 class Part(enum.Enum):
-    # Person/Place/Thing/Concept
+    """
+    A class representing a part of speech.
+    All parts of speech are predefined.
+
+    Attributes:
+
+        NOUN : tuple
+            1 Noun            a word that represents a person, place, thing, or concept.
+        PNOU : tuple
+            2 Pronoun         a word used in the place of a noun (he/she/they/it/etc.).
+        VERB : tuple
+            3 Verb            a word that represents an action.
+        ADVB : tuple
+            4 Adverb          a word that describes a verb.
+        ADJC : tuple
+            5 Adjective       a word that describes a noun.
+        PREP : tuple
+            6 Preposition     a word that is used before a noun/pronoun to form a phrase (in/on/at/onto/etc.).
+        CONJ : tuple
+            7 Conjunction     a word that connects clauses or sentences (and/but/if/etc.).
+        INTJ : tuple
+            8 Interjection    a word that represents a short exclamation or interruption.
+        DETE : tuple
+            9 Determiner      a word that determines the reference a noun has (a/the/every/etc.).
+
+    Functions:
+
+        indx() -> int:
+            Provides the index attached to the enumerated part of speech on which it is called.
+            The returned value is always inclusively between 1 and 9.
+        name() -> str:
+            Provides the name attached to the enumerated part of speech on which it is called.
+
+    """
+
     NOUN = ("noun", 1)
-    # Used in the place of a noun
     PNOU = ("pronoun", 2)
 
-    # Action
     VERB = ("verb", 3)
-    # Descriptor to verb
     ADVB = ("adverb", 4)
 
-    # Descriptor
     ADJC = ("adjective", 5)
-    # Used before noun/pronoun to form a phrase - time, place, direction, agent, instrument (in, on, at, into, etc.)
     PREP = ("preposition", 6)
-    # Unitive - transitions and elemental relation discriptors
     CONJ = ("conjunction", 7)
-    # Expressive
     INTJ = ("interjection", 8)
-
     DETE = ("determiner", 9)
 
     def __hash__(self):
@@ -42,14 +89,42 @@ class Part(enum.Enum):
 
 @dataclass
 class Word:
-    # The keys associated with this Word
-    keys: dict
+    """
+    A class representing a word.
 
-    # The string representation of this Word
+    Attributes:
+
+        keys : dict
+            The unique keys associated with their word.
+            All key-value pairs inserted into this field should follow the model: (K: str, V: int), where
+            the value attached to a key represents the number of times it has been added.
+        word : str
+            The word string of a Word.
+        parts : list
+            A list of the parts of speech (see the Part class) that a Word has been assigned to.
+        defn : str
+            The definition of a Word.
+
+    Functions:
+
+        top_part() -> int:
+            Provides the enumerated index of the first Part a Word was assigned to.
+        parts() -> str:
+            Produces a string containing all Part indices separated by a space.
+        add_part(part):
+            Assigns a Word to a new part of speech.
+        add_key(key):
+            Adds a new key to the dictionary of stored keys, or increments the value attached to it.
+        define(defn):
+            Updates the definition (see defn attribute) of a Word.
+        format() -> str:
+            Provides a formatted string to be inserted as the entry of a Word into the words data file.
+
+    """
+
+    keys: dict
     word: str
-    # The part of speech that this Word is
     parts: list
-    # The definition of this Word
     defn: str = ''
 
     def __init__(self, word: str, indices: list):
@@ -211,10 +286,18 @@ def parse_line(line: str):
 
 
 def parts():
+    """
+    Provides a list of all enumerated parts of speech.
+    """
+
     return [Part.NOUN, Part.VERB, Part.ADJC, Part.PNOU, Part.ADVB, Part.PREP, Part.CONJ, Part.INTJ, Part.DETE]
 
 
-def names():
+def names() -> dict:
+    """
+    Provides a dictionary of the names of each enumerated Part.
+    """
+
     out = {}
     for part in parts():
         out[part.name()] = part
@@ -222,6 +305,11 @@ def names():
 
 
 def get_part(index: int):
+    """
+    Returns a Part if the provided index matches that of any enumerated Part.
+    Nothing is returned if no enumerated Part has the provided index.
+    """
+
     for part in parts():
         if index == part.value[1]:
             return part

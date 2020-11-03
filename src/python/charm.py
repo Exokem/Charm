@@ -2,9 +2,6 @@ import src.python.accessor as acc
 import src.python.listener as ltr
 
 
-active: bool = True
-
-
 def init():
     acc.recover_data()
     greet_user()

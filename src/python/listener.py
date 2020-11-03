@@ -1,3 +1,25 @@
+"""
+Processes user input.
+
+Functions:
+
+    wait()
+    process_input(line)
+    check_commands(line) -> bool
+    unknown_words()
+    learn_new_word(word)
+    learn_new_defn(word)
+    try_ask_save()
+    post_query(subject, value, mode)
+    line_valid(line) -> bool
+    negative(word) -> bool
+
+Authors:
+
+    Samuel Henderson
+"""
+
+
 import random
 import src.python.accessor as acc
 from src.python.data import *
