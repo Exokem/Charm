@@ -59,24 +59,37 @@ class Word:
         :param word: The word or line to
         :param indices: The parts of speech that this Word is
         """
+
         self.word = word
         self.parts = []
 
         for index in indices:
+            # Parse the list of indices into parts of speech to attach to this Word
             part = get_part(int(index))
             if part is not None and not self.parts.__contains__(part):
                 self.parts.append(part)
 
     def __hash__(self):
+        # Hash words only by string so the same word strings will not be split over different Word instances
         return hash(self.word)
 
     def __eq__(self, other):
+        # Words are equal if they have the same word string
+        # This should not be meaningfully usable as there should never be two Word instances comparable by their word
         return self.word == other.word
 
     def __str__(self):
         return self.word
 
     def top_part(self) -> int:
+        """
+        Access the first Part this Word was assigned to
+        :return: -1 indicates no parts; 1-9 indicates the index of the Part as defined in its enum entry
+        """
+
+        if len(self.parts) < 1:
+            # No Parts
+            return -1
         return self.parts[0].indx()
 
     def parts(self) -> str:
@@ -84,13 +97,21 @@ class Word:
         Formats the functional parts of speech of this Word into a string, separated with spaces.
         """
 
+        # Start with first Part
         out: str = self.parts[0].value[1]
         for index in range(1, len(self.parts)):
+            # Append a space and the next Part index
             out = out + " " + str(self.parts[index].value[1])
         return out
 
     def add_part(self, part: Part) -> None:
-        self.parts.append(part)
+        """
+        Assign this Word to a new part of speech.
+        Duplicates are ignored.
+        """
+
+        if not self.parts.__contains__(part):
+            self.parts.append(part)
 
     def add_key(self, key: str) -> None:
         """
@@ -101,18 +122,19 @@ class Word:
         """
 
         if self.keys is None:
+            # Initialize keys if undefined
             self.keys = {}
 
         if self.keys.get(key) is None:
+            # Add first occurrence of the provided key
             self.keys[key] = 1
         else:
+            # Increment occurrences of existing keys
             self.keys[key] = self.keys[key] + 1
 
     def define(self, defn: str) -> None:
         """
         Define this Word.
-
-        :param defn: The definition of this Word
         """
 
         self.defn = defn
@@ -121,15 +143,20 @@ class Word:
         """
         Formats necessary elements of this Word for saving.
 
-        WORD,X X X X X X X X X,DEFINITION,KEY0:V0 ... KEYN:VN
+        WORD,P P P P P P P P P,DEFINITION,KEY0:V0 ... KEYN:VN
         """
 
+        # Start with the word and top Part
         out: str = self.word + "," + str(self.top_part())
+
         for index in range(1, len(self.parts)):
+            # Add all other Parts followed by a space
             out = out + " " + str(self.parts[index].indx())
 
         if self.defn is not None:
             out = out + "," + self.defn + ","
+
+        # TODO: append keys
 
         return out + "\n"
 
