@@ -1,5 +1,5 @@
 import random
-from src.python.accessor import *
+import src.python.accessor as acc
 from src.python.data import *
 
 
@@ -53,9 +53,9 @@ def check_commands(line: str) -> bool:
     ===================== =================================================================
     """
 
-    if line == save_phrase:
+    if line == acc.savek:
         # Save and notify
-        save()
+        acc.save()
         post_query("I " + line + "!")
         return True
     elif line == 'x':
@@ -70,7 +70,7 @@ def unknown_words(words: list):
     """
 
     for word in words:
-        if book.get(hash(word.lower())) is None:
+        if acc.book.get(hash(word.lower())) is None:
             # If any word is unknown, return it to be identified
             return word
 
@@ -103,7 +103,7 @@ def learn_new_word(word: str) -> None:
         for arg in line:
             # Check all words in the input line for valid parts of speech
             if valid_names.__contains__(arg):
-                add_word(word, valid_names[arg])
+                acc.add_word(word, valid_names[arg])
                 try_ask_save()
                 return
 
@@ -116,7 +116,7 @@ def learn_new_defn(word: str) -> None:
     """
 
     # Retrieve the Word object from Charm's book
-    word = book[hash(word)]
+    word = acc.book[hash(word)]
 
     # Do not inherently ask to redefine
     if word.defn != '':
@@ -140,9 +140,8 @@ def try_ask_save() -> None:
     By default, there is no save phrase - it must be defined by the user when prompted.
     There is a 95% chance that the user will be asked to provide a save phrase if it has not already been defined.
     """
-    global save_phrase
 
-    if save_phrase == '':
+    if acc.savek == '':
         # Do not inherently redefine save phrase
         val = random.random()
         if val < 0.95:
