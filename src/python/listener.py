@@ -1,5 +1,5 @@
 import random
-from src.python.printer import *
+from src.python.accessor import *
 from src.python.data import *
 
 
@@ -53,9 +53,9 @@ def check_commands(line: str) -> bool:
     ===================== =================================================================
     """
 
-    if line == acc.save_phrase:
+    if line == save_phrase:
         # Save and notify
-        acc.save()
+        save()
         post_query("I " + line + "!")
         return True
     elif line == 'x':
@@ -70,7 +70,7 @@ def unknown_words(words: list):
     """
 
     for word in words:
-        if acc.book.get(hash(word.lower())) is None:
+        if book.get(hash(word.lower())) is None:
             # If any word is unknown, return it to be identified
             return word
 
@@ -103,7 +103,7 @@ def learn_new_word(word: str) -> None:
         for arg in line:
             # Check all words in the input line for valid parts of speech
             if valid_names.__contains__(arg):
-                acc.add_word(word, valid_names[arg])
+                add_word(word, valid_names[arg])
                 try_ask_save()
                 return
 
@@ -116,7 +116,7 @@ def learn_new_defn(word: str) -> None:
     """
 
     # Retrieve the Word object from Charm's book
-    word = acc.book[hash(word)]
+    word = book[hash(word)]
 
     # Do not inherently ask to redefine
     if word.defn != '':
@@ -140,8 +140,9 @@ def try_ask_save() -> None:
     By default, there is no save phrase - it must be defined by the user when prompted.
     There is a 95% chance that the user will be asked to provide a save phrase if it has not already been defined.
     """
+    global save_phrase
 
-    if acc.save_phrase == '':
+    if save_phrase == '':
         # Do not inherently redefine save phrase
         val = random.random()
         if val < 0.95:
@@ -150,8 +151,8 @@ def try_ask_save() -> None:
 
             if line_valid(val):
                 # Do not use empty or single space lines as a save phrase
-                acc.save_phrase = val
-                post_query("I will \'" + acc.save_phrase + "\' to keep new information")
+                save_phrase = val
+                post_query("I will \'" + save_phrase + "\' to keep new information")
             else:
                 # Notify the user of their error
                 post_query("That does not make sense")
@@ -168,6 +169,7 @@ def post_query(subject: str, value="", mode='e'):
     'c'       query a comparison: 'subject' is 'query'
     'd'       query a direct definition: 'subject' 'query'
     'e'       query a statement: 'subject'
+    'v'       post a statement and parenthesized value: 'subject' ('value')
     ========= ===============================================================
 
     MODIFIERS:
@@ -185,6 +187,8 @@ def post_query(subject: str, value="", mode='e'):
         message = subject + " " + str(value) + "?"
     elif mode.__contains__('e'):
         message = subject
+    elif mode.__contains__('v'):
+        message = subject + " (" + str(value) + ")"
 
     # Apply stackable modifiers
     if mode.__contains__('x'):

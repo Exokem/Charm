@@ -1,11 +1,11 @@
 import os.path as path
 from src.python.data import *
-from src.python.printer import *
+from src.python.listener import post_query
 
 
 version: str = ""
 
-save_phrase: str = ""
+savek: str = ""
 greeting: str = ""
 
 alpha: list = []
@@ -22,14 +22,15 @@ def recover_data() -> None:
     """"""
     recover_words()
     recover_user_data()
-    print_value_message("Connected to Charm Communication Console", version)
+    post_query("Connected to Charm Communication Console", version, mode='v')
+    # print_value_message("Connected to Charm Communication Console", version)
 
 
 def recover_user_data() -> None:
     """
     Recovers user data from the user_data file.
     """
-    global alpha, version, save_phrase, greeting
+    global alpha, version, savek, greeting
 
     if path.exists("data/user_data"):
         userdata = open("data/user_data").read()
@@ -43,18 +44,14 @@ def recover_user_data() -> None:
                     # Alphabet is stored in the first line
                     alpha = sections
                 elif line == 1:
-                    version = sections[1][:-2] + str(stored_words()) + "-"
+                    version = sections[1][:-2] + str(len(book)) + "-"
                     for i in range(len(alpha) - 3, len(alpha)):
                         if 0 <= i:
                             version += alpha[i]
                 elif line == 2:
-                    save_phrase = sections[1]
+                    savek = sections[1]
                 elif line == 3:
                     greeting = sections[1]
-
-
-def stored_words() -> int:
-    return len(book)
 
 
 def recover_words() -> None:
@@ -75,14 +72,13 @@ def recover_words() -> None:
                 # Store Word if it has been parsed successfully
                 count += 1
                 book[hash(word)] = word
-                print_status("Recovering words from " + dest, count)
     else:
         file = open(dest, "w+")
         file.close()
 
 
 def save():
-    global save_phrase, greeting
+    global savek, greeting
 
     open("data/words", "w").close()
     words = open("data/words", "r+")
@@ -93,8 +89,8 @@ def save():
 
     data = store_contents("data/user_data")
     if 4 <= len(data):
-        if save_phrase != "":
-            data[2] = "save," + save_phrase + "\n"
+        if savek != "":
+            data[2] = "save," + savek + "\n"
         if greeting != "":
             data[3] = "greeting," + greeting + "\n"
 
