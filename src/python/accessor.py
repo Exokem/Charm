@@ -3,12 +3,15 @@ from src.python.data import *
 from src.python.listener import post_query
 
 
+# The user-specific version, save key, and greeting
 version: str = ""
 savek: str = ""
 greeting: str = ""
 
+# The user-specific alphabet
 alpha: list = []
 
+# The user-specific book of words
 book: dict = {}
 
 
@@ -37,7 +40,16 @@ def recover_data() -> None:
 def recover_user_data() -> None:
     """
     Recovers user data from the user_data file.
+
+    LINES:
+    ========= ==============
+    0         Alphabet
+    1         Version
+    2         Save Key
+    3         Greeting
+    ========= ==============
     """
+
     global alpha, version, savek, greeting
 
     if path.exists("data/user_data"):
@@ -67,59 +79,73 @@ def recover_user_data() -> None:
 
 def recover_words() -> None:
     """
-    Recovers any words stored in their respective files.
+    Parses each line in the 'words' file as a Word.
     """
-    global alpha
-
-    count = 0
 
     dest = "data/words"
+
     if path.exists(dest):
-        # If the file exists, parse its contents into Word objects
+        # If the file exists, open it and parse
         word_file = open(dest)
         for line in word_file:
+            # Attempt to parse a Word from the current line
             word = parse_line(line)
             if word is not None:
                 # Store Word if it has been parsed successfully
-                count += 1
                 book[hash(word)] = word
     else:
+        # Create the file if it is missing
         file = open(dest, "w+")
         file.close()
 
 
 def save():
+    """
+    Saves all stored word and user data.
+    """
+
     global savek, greeting
 
+    # First clear the words data file
     open("data/words", "w").close()
     words = open("data/words", "r+")
     words.truncate(0)
+
+    # Write each formatted Word into a separate line in the empty file
     for word in book.values():
         words.write(word.format())
     words.close()
 
-    data = store_contents("data/user_data")
+    # Collect the contents of the user data file before erasing it
+    data = store_contents("data/user_data", create=True)
+
     if 4 <= len(data):
+        # Overwrite the third and fourth lines of the data file with the new save key and greeting values
+        # Only updated if not an empty string
         if savek != "":
             data[2] = "save," + savek + "\n"
         if greeting != "":
             data[3] = "greeting," + greeting + "\n"
 
+    # Open the data file and write its new contents
     userdata = open("data/user_data", "r+")
     for entry in data:
         userdata.write(entry)
 
 
-def store_contents(file: str) -> list:
+def store_contents(file: str, create: bool = False) -> list:
     """
     Reads the contents of a file into a list.
     Each entry in the list represents a line in the provided file, if it exists.
 
-    :param file: The path of the file to read.
-    :return: A list containing the contents of the file.
+    :param file: The path of the file to read
+    :param create: Should the file be created if it does not exist
+    :return: A list containing the contents of the file
     """
 
     if not path.exists(file):
+        if create:
+            open(file, "w+").close()
         return []
     else:
         lines = []
